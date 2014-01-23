@@ -1,22 +1,24 @@
+#!/usr/bin/env python
 # -*- coding:utf-8 -*-
 from collections import defaultdict
 import itertools
 import math
 
 
-def from_tsv_get(file_name, *args):
-    with open(file_name) as tsv:
-        tsv.readline() # first line is general info of file, it shouldn't be there
+def from_tsv_get(file_names, *args):
+    for file_name in file_names:
+        with open(file_name) as tsv:
+            tsv.readline() # first line is general info of file, it shouldn't be there
 
-        columns = tsv.readline().split("\t") # second line column names
-        columns[-1] = columns[-1].replace("\n", "")
+            columns = tsv.readline().split("\t") # second line column names
+            columns[-1] = columns[-1].replace("\n", "")
 
-        column_indexes = [columns.index(search_term) for search_term in args]
+            column_indexes = [columns.index(search_term) for search_term in args]
 
-        for line in tsv:
-            lis_line = line.split("\t")
-            lis_line[-1] = lis_line[-1].replace("\n", "")
-            yield [lis_line[col] for col in column_indexes]
+            for line in tsv:
+                lis_line = line.split("\t")
+                lis_line[-1] = lis_line[-1].replace("\n", "")
+                yield [lis_line[col] for col in column_indexes]
 
 
 def rel_hist(lines):
@@ -32,7 +34,7 @@ def non_rel_hist(lines):
 
 def rsv(query, fil):
     words = query.split()
-    lines1, lines2 = itertools.tee(from_tsv_get(fil, 'Search term', 'Added/Excluded', 'Conv. (1-per-click)'), 2)
+    lines1, lines2 = itertools.tee(from_tsv_get((fil,), 'Search term', 'Added/Excluded', 'Conv. (1-per-click)'), 2)
     rel_words, non_rel_words = rel_hist(lines1), non_rel_hist(lines2)
     rel_dict = defaultdict(int)
     non_rel_dict = defaultdict(int)
