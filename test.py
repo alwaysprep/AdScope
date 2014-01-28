@@ -1,38 +1,68 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
-from rsv import from_tsv_get, calculateRsv
+from extract import from_tsv_get, hist, couple_hist, rel_non_rel_lines
+from rsv import calculateRsv
 from bigram import get_prob_of_query
 
-def rsv_test(line, fil):
-    pass
+
+def extract_data(fil):
+    lines = list(from_tsv_get((fil,), ",", 'Search term', 'Added/Excluded', 'Conv. (1-per-click)'))
+    words = {}
+    couples = {}
+    hist(words, lines)
+    couple_hist(couples, lines)
+    lins = rel_non_rel_lines(lines)
+    for word in words:
+        words.get(word).append(calculateRsv(word, words, lins))
+
+    return (words, couples, lins, lines)
 
 
-def bigram_test(line, fil):
-    pass
+def is_ok(a,b):
+    return a >= b
 
-def test(training, test, func):
-    training_data = from_tsv_get(training, 'Search term', 'Added/Excluded', 'Conv. (1-per-click)')
-    test_data = from_tsv_get(test, 'Search term', 'Added/Excluded', 'Conv. (1-per-click)')
-    total_rsv = 0
-    total_bigram = 0
 
-    for line in test_data:
-
-        if rsv_test(line, "data/data.tsv"):
-            total_rsv += 1
-
-        if bigram_test(line, "data/data.tsv"):
-            total_bigram += 1
-
-    return "rsv: " + str(total_rsv) + " bigram: " + str(total_bigram)
 
 
 if __name__ == "__main__":
-    file = from_tsv_get(("data/data.tsv",), 'Search term', 'Added/Excluded', 'Conv. (1-per-click)')
-    lis = []
-    for line in file:
-        lis.append((get_prob_of_query(line[0], "data/data.tsv"), calculateRsv(line[0], "data/data.tsv"), line[0]))
-    lis.sort()
+    print("bigram\trsv\tbothTrue\tbothFalse\ttotal")
 
-    for element in lis:
-        print "%.5f, %.5f, %s" % (element[0], element[1], element[2])
+
+    fils = ["first", "second", "third", "fourth", "fifth", "sixth"]
+
+    for fil in fils:
+        rsv = 0
+        bigram = 0
+        when_same = 0
+        both_false = 0
+        queries = ""
+        words, couples, lins, lines = extract_data("data/train/" + fil + "Train.csv")
+
+
+        test = list(from_tsv_get(("data/test/" + fil + "Test.csv",), ",", 'Search term', 'Added/Excluded', 'Conv. (1-per-click)'))
+
+        for line in test:
+
+            sentiment = True if ((line[1] == "Added" or line[2] == "1") and ( not line[1] == "Excluded" )) else False
+
+            if is_ok(get_prob_of_query(line[0], words, couples, True), get_prob_of_query(line[0], words, couples, False)) == sentiment:
+                bigram += 1
+
+            if (calculateRsv(line[0], words, lins) > 1) == sentiment:
+                rsv += 1
+                if (calculateRsv(line[0], words, lins) > 1) == is_ok(get_prob_of_query(line[0], words, couples, True), get_prob_of_query(line[0], words, couples, False)):
+                    when_same += 1
+
+
+            if (calculateRsv(line[0], words, lins) > 1) != sentiment  and ((calculateRsv(line[0], words, lins) > 1) == is_ok(get_prob_of_query(line[0], words, couples, True), get_prob_of_query(line[0], words, couples, False))):
+                both_false += 1
+                queries +=  ("Added " if sentiment else "Excluded ") + str(calculateRsv(line[0], words, lins)) + " " + line[0]  + "\n"
+
+
+
+
+        with open("data/result/false.txt", "w") as false_fil:
+                    false_fil.write(queries)
+
+        print("%s     %s    %s       %s         %s"%(bigram, rsv, when_same, both_false, len(test)))
+        print "For "+ fil +" test bigram: %s and rsv: %s same: %s both false: %s total query: %s" % (bigram, rsv, when_same, both_false, len(test))
