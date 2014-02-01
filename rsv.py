@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 import math
-
+from config import rsv_smoothing_factor
 def rsv(words, word, lins):
     rsv = {}
     rsv[word] = {
@@ -14,9 +14,10 @@ def rsv(words, word, lins):
     return rsv
 
 def calculateC(word, words, lins):
+    alpha = rsv_smoothing_factor
     table = rsv(words, word, lins)
-    return math.log(((table[word]["positive"] + 0.5 ) / (table[word]["absent_positive"] + 0.5)) / (
-        ( table[word]["negative"] + 0.5 ) / (table[word]["absent_negative"] + 0.5)))
+    return math.log(((table[word]["positive"] + alpha ) / (table[word]["absent_positive"] + alpha)) / (
+        ( table[word]["negative"] + alpha) / (table[word]["absent_negative"] + alpha)))
 
 
 def calculateRsv(query, words, lins):

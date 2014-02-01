@@ -3,7 +3,7 @@
 from extract import from_tsv_get, hist, couple_hist, rel_non_rel_lines
 from rsv import calculateRsv
 from bigram import get_prob_of_query
-
+from config import rsv_trashold
 
 def extract_data(fil):
     lines = list(from_tsv_get((fil,), ",", 'Search term', 'Added/Excluded', 'Conv. (1-per-click)'))
@@ -45,16 +45,21 @@ if __name__ == "__main__":
 
             sentiment = True if ((line[1] == "Added" or line[2] == "1") and ( not line[1] == "Excluded" )) else False
 
-            if is_ok(get_prob_of_query(line[0], words, couples, True), get_prob_of_query(line[0], words, couples, False)) == sentiment:
+            bigram_sentiment = is_ok(get_prob_of_query(line[0], words, couples, True), get_prob_of_query(line[0], words, couples, False))
+
+            rsv_sentiment = (calculateRsv(line[0], words, lins) > rsv_trashold)
+
+
+            if bigram_sentiment == sentiment:
                 bigram += 1
 
-            if (calculateRsv(line[0], words, lins) > 1) == sentiment:
+            if rsv_sentiment == sentiment:
                 rsv += 1
-                if (calculateRsv(line[0], words, lins) > 1) == is_ok(get_prob_of_query(line[0], words, couples, True), get_prob_of_query(line[0], words, couples, False)):
+                if rsv_sentiment == bigram_sentiment:
                     when_same += 1
 
 
-            if (calculateRsv(line[0], words, lins) > 1) != sentiment  and ((calculateRsv(line[0], words, lins) > 1) == is_ok(get_prob_of_query(line[0], words, couples, True), get_prob_of_query(line[0], words, couples, False))):
+            if (rsv_sentiment != sentiment)  and (rsv_sentiment == bigram_sentiment):
                 both_false += 1
                 queries +=  ("Added " if sentiment else "Excluded ") + str(calculateRsv(line[0], words, lins)) + " " + line[0]  + "\n"
 
@@ -65,4 +70,4 @@ if __name__ == "__main__":
                     false_fil.write(queries)
 
         print("%s     %s    %s       %s         %s"%(bigram, rsv, when_same, both_false, len(test)))
-        print "For "+ fil +" test bigram: %s and rsv: %s same: %s both false: %s total query: %s" % (bigram, rsv, when_same, both_false, len(test))
+        #print "For "+ fil +" test bigram: %s and rsv: %s same: %s both false: %s total query: %s" % (bigram, rsv, when_same, both_false, len(test))
