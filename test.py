@@ -3,7 +3,7 @@
 from extract import from_tsv_get, hist, couple_hist, rel_non_rel_lines
 from rsv import calculateRsv
 from bigram import get_prob_of_query
-from config import rsv_trashold
+from config import rsv_threshold
 
 def extract_data(fil):
     lines = list(from_tsv_get((fil,), ",", 'Search term', 'Added/Excluded', 'Conv. (1-per-click)'))
@@ -47,7 +47,7 @@ if __name__ == "__main__":
 
             bigram_sentiment = is_ok(get_prob_of_query(line[0], words, couples, True), get_prob_of_query(line[0], words, couples, False))
 
-            rsv_sentiment = (calculateRsv(line[0], words, lins) > rsv_trashold)
+            rsv_sentiment = (calculateRsv(line[0], words, lins) > rsv_threshold)
 
 
             if bigram_sentiment == sentiment:
