@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
+
 def from_tsv_get(file_names, delimeter, *args):
     for file_name in file_names:
         with open(file_name) as tsv:
@@ -17,16 +18,17 @@ def from_tsv_get(file_names, delimeter, *args):
                 yield [lis_line[col] for col in column_indexes]
 
 
+def hist(lines):
+    """
+    returns a dictionary each key is a word and each value is a list with relevant and non relevant count.
+    """
+    words = {}
 
-
-def hist(words, lines):
     for line in lines:
-        if (line[1] == 'Added' or line[2] == "1") and (not line[1] == 'Excluded'):
-            sentiment = True
-        else:
-            sentiment = False
+        sentiment = (line[1] == 'Added' or line[2] == "1") and (not line[1] == 'Excluded')
 
         query = line[0].split()
+
         for word in query:
             if word not in words:
                 if sentiment:
@@ -38,32 +40,7 @@ def hist(words, lines):
                     words[word][0] += 1
                 else:
                     words[word][1] += 1
-
-def get_adjacents(couples, line):
-
-    if (line[1] == 'Added' or line[2] == "1") and (not line[1] == 'Excluded'):
-        sentiment = True
-    else:
-        sentiment = False
-    query = line[0].split()
-
-    for index in xrange(len(query)-1):
-        if (query[index], query[index + 1]) not in couples:
-            if sentiment:
-                couples[(query[index], query[index + 1])] = [1, 0]
-            else:
-                couples[(query[index], query[index + 1])] = [0, 1]
-        else:
-            if sentiment:
-                couples[(query[index], query[index + 1])][0] += 1
-            else:
-                couples[(query[index], query[index + 1])][1] += 1
-
-
-
-def couple_hist(couples, lines):
-    for line in lines:
-        get_adjacents(couples, line)
+    return words
 
 
 def rel_non_rel_lines(lines):
