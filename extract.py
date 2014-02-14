@@ -27,7 +27,7 @@ def hist(lines):
     for line in lines:
         sentiment = (line[1] == 'Added' or line[2] == "1") and (not line[1] == 'Excluded')
 
-        query = line[0].split()
+        query = set(line[0].split())
 
         for word in query:
             if word not in words:
@@ -43,6 +43,21 @@ def hist(lines):
     return words
 
 
+def get_idf(lines):
+    words = {}
+
+    for line in lines:
+
+        query = set(line[0].split())
+
+        for word in query:
+            if word not in words:
+                words[word] = 1
+            else:
+                words[word] += 1
+    return words
+
+
 def rel_non_rel_lines(lines):
     pos = 0
     neg = 0
@@ -52,4 +67,5 @@ def rel_non_rel_lines(lines):
         else:
             neg += 1
     return [pos, neg]
+
 
