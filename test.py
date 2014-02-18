@@ -6,8 +6,14 @@ from rsv import calculateRsv, calculateC
 from config import rsv_threshold, rsv_smoothing_factor
 from nltk.corpus import wordnet
 #import matplotlib.pyplot as plt
+import pylab as pl
+from sklearn import datasets, linear_model
 import numpy as np
 from stemming import stem_file
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import LinearSVC
+from sklearn.svm import SVR
+from sklearn import svm
 
 def extract_data(fil, sf=None):
     lines = list(from_tsv_get((fil,), ",", 'Search term', 'Added/Excluded', 'Conv. (1-per-click)'))
@@ -52,90 +58,72 @@ def get_precision(rsv_threshold, sf):
     return (total) / 3390.0
 
 
-def grid(sf, rt):
-    for s in sf:
-        for r in rt:
-            a = get_precision(round(r,1), round(s,2))
-            print a
-            yield a
+
+def vectorize(doc, most, most_set):
+    train_feature = []
+    for train in doc:
+        train = train.split()
+        temp = [0 for i in range(700)]
+        for t in train:
+            if t in most_set:
+                index = np.where(most==t)[0][0]
+                temp[index] = 1
+        train_feature.append(temp)
+    return train_feature
 
 
-def prec_tfidf(x):
-    files = ["first", "second", "third", "fourth", "fifth", "sixth"]
-    total = 0
+def getLabel(lines):
+    labels = []
+    for line in lines:
+
+        sentiment = (line[1] == "Added" or line[2] == "1") and ( not line[1] == "Excluded" )
+        labels.append(1 if sentiment else 0)
+
+    return labels
+
+
+
+if __name__ == "__main__":
+
+    files = ["first"]#, "second", "third", "fourth", "fifth", "sixth"]
+
     for fil in files:
-        rsv = 0
-
         words, lins, lines = extract_data("data/train/" + fil + "Train.csv")
 
         test = list(from_tsv_get(("data/test/" + fil + "Test.csv",), ",", 'Search term', 'Added/Excluded', 'Conv. (1-per-click)'))
 
-        other250 = sorted([(word[1][3] * math.log(float(len(lines))/sum(word[1][:2])), word[0]) for word in words.items()])[::-1][x:]
-
-        for other in other250:
-            words[other[1]][2] = 0
-
-        for line in test:
-            sentiment = (line[1] == "Added" or line[2] == "1") and ( not line[1] == "Excluded" )
-
-            rsv_sentiment = (calculateRsv(line[0], words, lins) > rsv_threshold) and isEnglish(line[0], words)
-
-            if rsv_sentiment == sentiment:
-                rsv += 1
-
-        total += rsv
-    return total/ 3390.0
-
-if __name__ == "__main__":
-    """
-
-    print("rsv     rsvFalse   total")
-
-    files = ["first", "second", "third", "fourth", "fifth", "sixth"]
-
-    for fil in files:
-        rsv = 0
-        queries = ""
-        words, lins, lines = extract_data("data/train/" + fil + "Train_stemmed.csv")
-
-        test = list(from_tsv_get(("data/test/" + fil + "Test_stemmed.csv",), ",", 'Search term', 'Added/Excluded', 'Conv. (1-per-click)'))
+        first50 = sorted([[word[1][3] * math.log(float(len(lines))/sum(word[1][:2])), word[0]] for word in words.items()])[::-1][:700]
 
 
 
-        other250 = sorted([(word[1][3] * math.log(float(len(lines))/sum(word[1][:2])), word[0]) for word in words.items()])[::-1][1800:]
+        first50 = np.array(first50)[:,1]
+
+        set50 = set(first50)
+
+        train_doc = np.array(lines)[:,0]
+        test_doc = np.array(test)[:,0]
 
 
+        train_feature = vectorize(train_doc, first50, set50)
+        test_feature = vectorize(test_doc, first50, set50)
 
+        train_label = getLabel(lines)
+        test_label = getLabel(test)
 
-        for other in other250:
-            words[other[1]][2] = 0
+        regr = linear_model.LinearRegression()
 
+        regr.fit(train_feature, train_label)
 
-        for line in test:
+        print('Coefficients: \n', regr.coef_)
+        print("Residual sum of squares: %.2f" % np.mean((regr.predict(test_feature) - test_label) ** 2))
+        print('Variance score: %.2f' % regr.score(test_feature, test_label))
 
-            sentiment = (line[1] == "Added" or line[2] == "1") and ( not line[1] == "Excluded" )
+        clf = LogisticRegression().fit(train_feature, train_label)
+        clf2 = LinearSVC().fit(train_feature, train_label)
+        clf3 = svm.SVC(degree = 1).fit(train_feature,train_label)
+        clf4 = svm.SVR().fit(train_feature,train_label)
 
-
-
-            rsv_sentiment = (calculateRsv(line[0], words, lins) > rsv_threshold) and isEnglish(line[0], words)
-
-
-
-            if rsv_sentiment == sentiment:
-                rsv += 1
-
-            else:
-                queries += ("Added    " if sentiment else "Excluded ") + "\t" + str(calculateRsv(line[0], words, lins)) + "\t" + sixty_char(line[0]) + str([words.get(word,[0,0,0])[2] for word in line[0].split()])  + "\n"
-
-        with open("data/result/false.txt", "w") as false_fil:
-                    false_fil.write(queries)
-
-
-
-        print("%s     %s        %s"%( rsv, len(test) - rsv, len(test)))
-    """
-    #stem_file("data/train/firstTrain.csv")
-
-    for i in range(1500):
-        print prec_tfidf(i)
-
+        print sum(1 for i in (test_label == clf.predict(test_feature)) if i)
+        print sum(1 for i in (test_label == clf2.predict(test_feature)) if i)
+        print sum(1 for i in (test_label == clf3.predict(test_feature)) if i)
+        print sum(1 for i in (test_label == clf4.predict(test_feature)) if i)
