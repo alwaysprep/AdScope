@@ -43,12 +43,12 @@ def hist(lines):
     return words
 
 
-def get_idf(lines):
+def get_tf(lines):
     words = {}
 
     for line in lines:
 
-        query = set(line[0].split())
+        query = line[0].split()
 
         for word in query:
             if word not in words:
