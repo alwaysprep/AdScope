@@ -63,7 +63,7 @@ def vectorize(doc, most, most_set):
     train_feature = []
     for train in doc:
         train = train.split()
-        temp = [0 for i in range(700)]
+        temp = [0 for i in range(800)]
         for t in train:
             if t in most_set:
                 index = np.where(most==t)[0][0]
@@ -92,9 +92,8 @@ if __name__ == "__main__":
 
         test = list(from_tsv_get(("data/test/" + fil + "Test.csv",), ",", 'Search term', 'Added/Excluded', 'Conv. (1-per-click)'))
 
-        first50 = sorted([[word[1][3] * math.log(float(len(lines))/sum(word[1][:2])), word[0]] for word in words.items()])[::-1][:700]
-
-
+        #first50 = sorted([[word[1][3] * math.log(float(len(lines))/sum(word[1][:2])), word[0]] for word in words.items()])[::-1][:700]
+        first50 = list(sorted([(word[1][2], word[0]) for word in words.items()],reverse=True))[:800]
 
         first50 = np.array(first50)[:,1]
 
@@ -120,10 +119,10 @@ if __name__ == "__main__":
 
         clf = LogisticRegression().fit(train_feature, train_label)
         clf2 = LinearSVC().fit(train_feature, train_label)
-        clf3 = svm.SVC(degree = 1).fit(train_feature,train_label)
-        clf4 = svm.SVR().fit(train_feature,train_label)
+        #clf3 = svm.SVC(degree = 1).fit(train_feature,train_label)
+        #clf4 = svm.SVR().fit(train_feature,train_label)
 
         print sum(1 for i in (test_label == clf.predict(test_feature)) if i)
         print sum(1 for i in (test_label == clf2.predict(test_feature)) if i)
-        print sum(1 for i in (test_label == clf3.predict(test_feature)) if i)
-        print sum(1 for i in (test_label == clf4.predict(test_feature)) if i)
+        #print sum(1 for i in (test_label == clf3.predict(test_feature)) if i)
+        #print sum(1 for i in (test_label == clf4.predict(test_feature)) if i)
