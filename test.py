@@ -1,29 +1,38 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
-from extract import from_tsv_get, hist, rel_non_rel_lines, get_tf
+from extract import from_tsv_get, hist, rel_non_rel_lines, totalNumOfWords
 import math
-from rsv import calculateRsv, calculateC
+from rsv import calculateRsv, calculateC, calculatePtUt, updatePtUt
 from config import rsv_threshold, rsv_smoothing_factor
 from nltk.corpus import wordnet
 #import matplotlib.pyplot as plt
 import pylab as pl
-from sklearn import datasets, linear_model
 import numpy as np
-from stemming import stem_file
-from sklearn.linear_model import LogisticRegression
-from sklearn.svm import LinearSVC
-from sklearn.svm import SVR
-from sklearn import svm
+
+
 
 def extract_data(fil, sf=None):
     lines = list(from_tsv_get((fil,), ",", 'Search term', 'Added/Excluded', 'Conv. (1-per-click)'))
     words = hist(lines)
     lins = rel_non_rel_lines(lines)
-    idf = get_tf(lines)
-    for word in words:
-            words.get(word).extend([calculateC(word, words, lins, sf), idf[word]])
 
-    return words, lins, lines
+
+    for word in words:
+        words[word] = list(calculatePtUt(word,words,lins))
+        words.get(word).append(calculateC(word, words))
+
+    return words
+
+
+def update_words(lines, old_words, sf=None,):
+    new_words = hist(lines)
+
+    lins = rel_non_rel_lines(lines)
+    for word in new_words:
+        old_words[word] = list(updatePtUt(word,new_words, old_words,lins))
+        old_words.get(word).append(calculateC(word, old_words))
+
+
 
 def isEnglish(sentence, words):
     sentenceList = sentence.split()
@@ -38,91 +47,64 @@ def sixty_char(sentence):
 
 
 
-def get_precision(rsv_threshold, sf):
-    files = ["first", "second", "third", "fourth", "fifth", "sixth"]
-    total = 0
+if __name__ == "__main__":
+
+    files = ["first"] #, "second", "third", "fourth", "fifth", "sixth"]
+
+
+
     for fil in files:
-        rsv = 0
-        words, lins, lines = extract_data("data/train/" + fil + "Train.csv", sf)
+        words = extract_data("data/train/" + fil + "Train.csv")
+
 
         test = list(from_tsv_get(("data/test/" + fil + "Test.csv",), ",", 'Search term', 'Added/Excluded', 'Conv. (1-per-click)'))
+
+        new_train = []
+        new_test = []
+
+
         for line in test:
 
             sentiment = (line[1] == "Added" or line[2] == "1") and ( not line[1] == "Excluded" )
 
-            rsv_sentiment = (calculateRsv(line[0], words, lins) > rsv_threshold) and isEnglish(line[0], words)
-            if rsv_sentiment == sentiment:
-                rsv += 1
+            rsv_sentiment = (calculateRsv(line[0], words) > rsv_threshold) and isEnglish(line[0], words)
 
-        total += rsv
-    return (total) / 3390.0
-
-
-
-def vectorize(doc, most, most_set):
-    train_feature = []
-    for train in doc:
-        train = train.split()
-        temp = [0 for i in range(800)]
-        for t in train:
-            if t in most_set:
-                index = np.where(most==t)[0][0]
-                temp[index] = 1
-        train_feature.append(temp)
-    return train_feature
+            if sentiment == rsv_sentiment:
+                new_train.append(line)
+            else:
+                new_test.append(line)
 
 
-def getLabel(lines):
-    labels = []
-    for line in lines:
-
-        sentiment = (line[1] == "Added" or line[2] == "1") and ( not line[1] == "Excluded" )
-        labels.append(1 if sentiment else 0)
-
-    return labels
+        #print [(t[0], t[1], calculateRsv(t[0], words, lins)) for t in new_test]
 
 
+        for iar in range(10):
 
-if __name__ == "__main__":
+            update_words(new_train, words)
 
-    files = ["first"]#, "second", "third", "fourth", "fifth", "sixth"]
+            total = 0
 
-    for fil in files:
-        words, lins, lines = extract_data("data/train/" + fil + "Train.csv")
+            print len(new_test), "nt"
 
-        test = list(from_tsv_get(("data/test/" + fil + "Test.csv",), ",", 'Search term', 'Added/Excluded', 'Conv. (1-per-click)'))
+            for line in new_test:
 
-        #first50 = sorted([[word[1][3] * math.log(float(len(lines))/sum(word[1][:2])), word[0]] for word in words.items()])[::-1][:700]
-        first50 = list(sorted([(word[1][2], word[0]) for word in words.items()],reverse=True))[:800]
+                sentiment = (line[1] == "Added" or line[2] == "1") and (not line[1] == "Excluded" )
 
-        first50 = np.array(first50)[:,1]
+                rsv_sentiment = (calculateRsv(line[0], words) > rsv_threshold) and isEnglish(line[0], words)
 
-        set50 = set(first50)
+                if sentiment == rsv_sentiment:
+                    total += 1
+            print(total)
 
-        train_doc = np.array(lines)[:,0]
-        test_doc = np.array(test)[:,0]
+        temp_test = new_test[:]
+        new_test = []
+        for line in temp_test:
 
+            sentiment = (line[1] == "Added" or line[2] == "1") and ( not line[1] == "Excluded" )
 
-        train_feature = vectorize(train_doc, first50, set50)
-        test_feature = vectorize(test_doc, first50, set50)
+            rsv_sentiment = (calculateRsv(line[0], words) > rsv_threshold) and isEnglish(line[0], words)
 
-        train_label = getLabel(lines)
-        test_label = getLabel(test)
-
-        regr = linear_model.LinearRegression()
-
-        regr.fit(train_feature, train_label)
-
-        print('Coefficients: \n', regr.coef_)
-        print("Residual sum of squares: %.2f" % np.mean((regr.predict(test_feature) - test_label) ** 2))
-        print('Variance score: %.2f' % regr.score(test_feature, test_label))
-
-        clf = LogisticRegression().fit(train_feature, train_label)
-        clf2 = LinearSVC().fit(train_feature, train_label)
-        #clf3 = svm.SVC(degree = 1).fit(train_feature,train_label)
-        #clf4 = svm.SVR().fit(train_feature,train_label)
-
-        print sum(1 for i in (test_label == clf.predict(test_feature)) if i)
-        print sum(1 for i in (test_label == clf2.predict(test_feature)) if i)
-        #print sum(1 for i in (test_label == clf3.predict(test_feature)) if i)
-        #print sum(1 for i in (test_label == clf4.predict(test_feature)) if i)
+            if sentiment == rsv_sentiment:
+                new_train.append(line)
+            else:
+                new_test.append(line)
