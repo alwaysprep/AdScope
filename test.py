@@ -46,65 +46,59 @@ def sixty_char(sentence):
     return sentence + " " * (60 - len(sentence))
 
 
+def rec(lis):
+
+    new_train = []
+    new_test = []
+
+    for line in lis:
+
+        sentiment = (line[1] == "Added" or line[2] == "1") and ( not line[1] == "Excluded" )
+
+        rsv_sentiment = (calculateRsv(line[0], words) > rsv_threshold) and isEnglish(line[0], words)
+
+        if sentiment == rsv_sentiment:
+            new_train.append(line)
+        else:
+            new_test.append(line)
+
+    return new_train, new_test
+
+
+def print_prec(new_test, words):
+    total=0
+    for line in new_test:
+
+        sentiment = (line[1] == "Added" or line[2] == "1") and (not line[1] == "Excluded" )
+
+        rsv_sentiment = (calculateRsv(line[0], words) > rsv_threshold) and isEnglish(line[0], words)
+
+        if sentiment == rsv_sentiment:
+            total += 1
+    print(total)
+
 
 if __name__ == "__main__":
 
-    files = ["first"] #, "second", "third", "fourth", "fifth", "sixth"]
+    fil = "first"
+
+    words = extract_data("data/train/" + fil + "Train.csv")
+
+    test = list(from_tsv_get(("data/test/" + fil + "Test.csv",), ",", 'Search term', 'Added/Excluded', 'Conv. (1-per-click)'))
+
+    print_prec(test, words)
+
+    new_train, new_test = rec(test)
+
+    print new_train
 
 
+    for ijk in range(10):
 
-    for fil in files:
-        words = extract_data("data/train/" + fil + "Train.csv")
+        new_train, new_test = rec(test)
+        print str(len(new_test)) + "  ",
 
+        update_words(new_train, words)
+        print_prec(new_test, words)
 
-        test = list(from_tsv_get(("data/test/" + fil + "Test.csv",), ",", 'Search term', 'Added/Excluded', 'Conv. (1-per-click)'))
-
-        new_train = []
-        new_test = []
-
-
-        for line in test:
-
-            sentiment = (line[1] == "Added" or line[2] == "1") and ( not line[1] == "Excluded" )
-
-            rsv_sentiment = (calculateRsv(line[0], words) > rsv_threshold) and isEnglish(line[0], words)
-
-            if sentiment == rsv_sentiment:
-                new_train.append(line)
-            else:
-                new_test.append(line)
-
-
-        #print [(t[0], t[1], calculateRsv(t[0], words, lins)) for t in new_test]
-
-
-        for iar in range(10):
-
-            update_words(new_train, words)
-
-            total = 0
-
-            print len(new_test), "nt"
-
-            for line in new_test:
-
-                sentiment = (line[1] == "Added" or line[2] == "1") and (not line[1] == "Excluded" )
-
-                rsv_sentiment = (calculateRsv(line[0], words) > rsv_threshold) and isEnglish(line[0], words)
-
-                if sentiment == rsv_sentiment:
-                    total += 1
-            print(total)
-
-        temp_test = new_test[:]
-        new_test = []
-        for line in temp_test:
-
-            sentiment = (line[1] == "Added" or line[2] == "1") and ( not line[1] == "Excluded" )
-
-            rsv_sentiment = (calculateRsv(line[0], words) > rsv_threshold) and isEnglish(line[0], words)
-
-            if sentiment == rsv_sentiment:
-                new_train.append(line)
-            else:
-                new_test.append(line)
+        test = new_test[:]
