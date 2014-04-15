@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<script src="../../jquery-1.10.2.js"></script>
+	<script src="../../ui/jquery.ui.core.js"></script>
+	<script src="../../ui/jquery.ui.widget.js"></script>
+	<script src="../../ui/jquery.ui.mouse.js"></script>
+	<script src="../../ui/jquery.ui.sortable.js"></script>
+	<link rel="stylesheet" href="../../../css/bootstrap/dist/css/bootstrap.min.css">
+	
+	<script>
+		var toggleIcon = function(item, iconClass) {
+			if (item.children(".glyphicon").length) {
+					item.children(".glyphicon").remove();
+				} else {
+					item.prepend($("<span class='glyphicon " + iconClass + "'><span>").hide().fadeIn('slow'));
+				}
+		}
+
+		$(document).ready(function(){
+			$(".list-group-item").bind("click", function(){
+				if ($(this).closest("#ok").attr("class")){
+					if ($(this).hasClass("list-group-item-success")) {
+						$(this).removeClass().addClass("list-group-item list-group-item-info");
+					} else {
+						$(this).removeClass().addClass("list-group-item");
+						$(this).addClass("list-group-item-success");
+
+					}
+				} else {
+					if ($(this).hasClass("list-group-item-danger")) {
+						$(this).removeClass().addClass("list-group-item list-group-item-warning");
+					} else {
+						$(this).removeClass().addClass("list-group-item");
+						$(this).addClass("list-group-item-danger");
+
+					}				
+				}
+				
+			});
+
+		});
+	</script>
+
+
+
+	<script>
+	$(function() {
+		var state = "ok";
+		$( "#sortable1, #sortable2" ).sortable({
+			connectWith: ".connectedSortable",
+
+		    stop: function(event, ui) {
+		    	if (ui.item.closest("#ok").attr("class")){
+					if (ui.item.hasClass("list-group-item-success")) {
+						ui.item.removeClass().addClass("list-group-item list-group-item-info");
+					} else {
+						ui.item.removeClass().addClass("list-group-item");
+						ui.item.addClass("list-group-item-success");
+											}
+				} else {
+					if (ui.item.hasClass("list-group-item-danger")) {
+						ui.item.removeClass().addClass("list-group-item list-group-item-warning");
+					} else {
+						ui.item.removeClass().addClass("list-group-item");
+						ui.item.addClass("list-group-item-danger");
+						
+					}				
+				}
+	    }
+		}).disableSelection();
+
+	});
+
+	</script>
+</head>
+<body>
+
+
+
+	<div class="container">
+		<div class="well">
+				<div class="row">
+
+					<div class="col-md-6">
+						
+							<div class="well h2 text-center" style ='background-color: #d0e9c6;'>+</div>
+								<div id="ok" class="list-group">
+									<ul id="sortable1" class="connectedSortable list-unstyled">
+										<li class="list-group-item list-group-item-info">sites like ning but free</li>
+										<li class="list-group-item list-group-item-info">sites like ning</li>
+										<li class="list-group-item list-group-item-info">rivals to ning websites</li>
+										<li class="list-group-item list-group-item-info">ning cheap</li>
+										<li class="list-group-item list-group-item-info">ning websites</li>
+										<li class="list-group-item list-group-item-info">alternatives to ning</li>
+										<li class="list-group-item list-group-item-info">ning design</li>
+										<li class="list-group-item list-group-item-info">ning south africa</li>
+										<li class="list-group-item list-group-item-info">ning vs</li>
+										<li class="list-group-item list-group-item-info">ning alternatives free jomsocial</li>
+										<li class="list-group-item list-group-item-info">ning alternatives</li>
+									</ul>
+								</div>
+						
+					</div>
+
+					<div class="col-md-6">
+						
+							<div class="well h2 text-center" style ='background-color: #f2dede;'>-</div>
+							
+								<div id="notok" class="list-group">
+									<ul id="sortable1" class="connectedSortable list-unstyled">
+
+										<li class="list-group-item list-group-item-warning">list of ning sites</li>
+										<li class="list-group-item list-group-item-warning">social networking sites powered by ning</li>
+										<li class="list-group-item list-group-item-warning">best ning sites</li>
+										<li class="list-group-item list-group-item-warning">top ning sites</li>
+										<li class="list-group-item list-group-item-warning">is there anymore ning art sites like dolldreams</li>
+										<li class="list-group-item list-group-item-warning">gay ning sites</li>
+										<li class="list-group-item list-group-item-warning">ning roleplay sites</li>
+										<li class="list-group-item list-group-item-warning">top sites like ning 2012</li>
+										<li class="list-group-item list-group-item-warning">sites like patriotpage ning</li>
+										<li class="list-group-item list-group-item-warning">ning shaenglish11</li>
+										<li class="list-group-item list-group-item-warning">online investors ning ning</li>
+									</ul>
+								</div>
+							
+						</div>
+						
+					
+
+				</div>
+				<div class="row">
+					<div class="col-lg-12">
+						<a class="btn btn-primary btn-lg" style="width:100%">Next</a>
+					</div>	
+				</div>
+
+		</div>
+	</div>
+
+
+</body>
+</html>

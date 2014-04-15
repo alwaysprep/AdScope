@@ -1,0 +1,41 @@
+
+
+<div class="col-md-6">
+
+        <div class="well h2 text-center" style ='background-color: #d0e9c6;'>+</div>
+            <div id="ok" class="list-group">
+                <ul id="sortable1" class="connectedSortable list-unstyled">
+
+
+                    {% for suggested_add in suggested_adds %}
+
+                    <li id="{{ suggested_add.id }}" class="list-group-item list-group-item-info">{{ suggested_add }}</li>
+
+                    {% endfor %}
+
+                </ul>
+            </div>
+
+</div>
+
+<div class="col-md-6">
+
+        <div class="well h2 text-center" style ='background-color: #f2dede;'>-</div>
+
+            <div id="notok" class="list-group">
+                <ul id="sortable1" class="connectedSortable list-unstyled">
+
+
+
+                    {% for suggested_exclude in suggested_excludes %}
+
+                    <li id="{{ suggested_exclude.id }}" class="list-group-item list-group-item-warning">{{ suggested_exclude }}</li>
+
+                    {% endfor %}
+                </ul>
+            </div>
+
+    </div>
+
+
+

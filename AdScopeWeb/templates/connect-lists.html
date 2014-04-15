@@ -1,0 +1,176 @@
+{% load staticfiles %}
+<!doctype html>
+<html lang="en">
+<head>
+
+	<meta charset="utf-8">
+	<script src="{% static 'js/jquery.js' %}"></script>
+	<script src="{% static 'js/jquery-ui-1.10.4/ui/jquery.ui.core.js' %}"></script>
+	<script src="{% static 'js/jquery-ui-1.10.4/ui/jquery.ui.widget.js' %}"></script>
+	<script src="{% static 'js/jquery-ui-1.10.4/ui/jquery.ui.mouse.js' %}"></script>
+	<script src="{% static 'js/jquery-ui-1.10.4/ui/jquery.ui.sortable.js' %}"></script>
+	<link rel="stylesheet" href="{% static 'css/bootstrap/dist/css/bootstrap.min.css' %}">
+	
+	<script>
+
+		var toggleIcon = function(item, iconClass) {
+			if (item.children(".glyphicon").length) {
+					item.children(".glyphicon").remove();
+				} else {
+					item.prepend($("<span class='glyphicon " + iconClass + "'><span>").hide().fadeIn('slow'));
+				}
+		}
+
+		$(document).ready(function(){
+
+             $("#submit").delegate(".btn", 'click' ,function(){
+                var add_lis = [];
+                var exclude_lis = [];
+                var none_lis = [];
+                $(".list-group-item-danger").each(function(){
+                    exclude_lis.push($(this).attr("id"));
+                });
+                $(".list-group-item-success").each(function(){
+                    add_lis.push($(this).attr("id"));
+                });
+                $(".list-group-item-warning").each(function(){
+                    none_lis.push($(this).attr("id"));
+                });
+                $(".list-group-item-info").each(function(){
+                    none_lis.push($(this).attr("id"));
+                });
+
+                $.ajax({
+                  type: "POST",
+                  url: "/choose",
+                  cache: false,
+                  data: { add_lis: add_lis, exclude_lis: exclude_lis, none_lis: none_lis },
+                  success: function( data ) {
+                    $( "#choose" ).html( data );
+                    window.location.reload();
+                  }
+                });
+
+			});
+
+
+
+
+
+			$(".list-group-item").bind("click", function(){
+				if ($(this).closest("#ok").attr("class")){
+					if ($(this).hasClass("list-group-item-success")) {
+						$(this).removeClass().addClass("list-group-item list-group-item-info");
+					} else {
+						$(this).removeClass().addClass("list-group-item");
+						$(this).addClass("list-group-item-success");
+					}
+				} else {
+					if ($(this).hasClass("list-group-item-danger")) {
+						$(this).removeClass().addClass("list-group-item list-group-item-warning");
+					} else {
+						$(this).removeClass().addClass("list-group-item");
+						$(this).addClass("list-group-item-danger");
+
+					}				
+				}
+				
+			});
+
+
+
+		});
+	</script>
+
+
+
+	<script>
+	$(function() {
+		var state = "ok";
+		$( "#sortable1, #sortable2" ).sortable({
+			connectWith: ".connectedSortable",
+
+		    stop: function(event, ui) {
+		    	if (ui.item.closest("#ok").attr("class")){
+					if (ui.item.hasClass("list-group-item-success")) {
+						ui.item.removeClass().addClass("list-group-item list-group-item-info");
+					} else {
+						ui.item.removeClass().addClass("list-group-item");
+						ui.item.addClass("list-group-item-success");
+											}
+				} else {
+					if (ui.item.hasClass("list-group-item-danger")) {
+						ui.item.removeClass().addClass("list-group-item list-group-item-warning");
+					} else {
+						ui.item.removeClass().addClass("list-group-item");
+						ui.item.addClass("list-group-item-danger");
+						
+					}				
+				}
+	    }
+		}).disableSelection();
+
+	});
+
+	</script>
+</head>
+<body>
+
+
+
+	<div class="container">
+		<div class="well">
+				<div id="choose" class="row">
+
+					<div class="col-md-6">
+						
+							<div class="well h2 text-center" style ='background-color: #d0e9c6;'>+</div>
+								<div id="ok" class="list-group">
+									<ul id="sortable1" class="connectedSortable list-unstyled">
+
+
+                                        {% for suggested_add in suggested_adds %}
+
+                                        <li id="{{ suggested_add.id }}" class="list-group-item list-group-item-info">{{ suggested_add }}</li>
+
+                                        {% endfor %}
+
+									</ul>
+								</div>
+						
+					</div>
+
+					<div class="col-md-6">
+						
+							<div class="well h2 text-center" style ='background-color: #f2dede;'>-</div>
+							
+								<div id="notok" class="list-group">
+									<ul id="sortable1" class="connectedSortable list-unstyled">
+
+
+
+                                        {% for suggested_exclude in suggested_excludes %}
+
+                                        <li id="{{ suggested_exclude.id }}" class="list-group-item list-group-item-warning">{{ suggested_exclude }}</li>
+
+                                        {% endfor %}
+									</ul>
+								</div>
+							
+						</div>
+						
+					
+
+				</div>
+				<div id="submit" class="row">
+					<div class="col-lg-12">
+						<a class="btn btn-primary btn-lg" style="width:100%">Next</a>
+					</div>	
+				</div>
+
+		</div>
+	</div>
+
+
+</body>
+</html>
