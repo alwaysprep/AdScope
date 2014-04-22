@@ -108,7 +108,7 @@ TEMPLATE_DIRS = (
     os.path.join(BASE_DIR, "templates/"),
 )
 
-if DEBUG:
+if False:
     INTERNAL_IPS = ('127.0.0.1',)
     MIDDLEWARE_CLASSES += (
         'debug_toolbar.middleware.DebugToolbarMiddleware',

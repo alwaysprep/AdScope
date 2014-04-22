@@ -86,6 +86,12 @@ def upload_file(request):
             handle_uploaded_file(request.FILES['file'])
             suggested_adds = TestQueries.objects.all().order_by("-rsv")[:10]
             suggested_excludes = TestQueries.objects.all().order_by("rsv")[:10]
+            for sa in suggested_adds:
+                sa.query = sa.query.split()
+
+            for se in suggested_excludes:
+                se.query = se.query.split()
+
             return render_to_response('connect-lists.html',
                                       {"suggested_adds":suggested_adds,"suggested_excludes":suggested_excludes})
     else:
@@ -133,14 +139,31 @@ def choose(request):
         suggested_adds = TestQueries.objects.filter(processed=False).order_by("-rsv")[:10]
 
         suggested_excludes = TestQueries.objects.filter(processed=False).order_by("rsv")[:10]
-        print "hello"
+
+
+        for sa in suggested_adds:
+            sa.query = sa.query.split()
+
+        for se in suggested_excludes:
+            se.query = se.query.split()
+
+        print suggested_excludes
         return render_to_response('partial.html', {"suggested_adds":suggested_adds,"suggested_excludes":suggested_excludes})
 
 
     suggested_adds = TestQueries.objects.filter(processed=False).order_by("-rsv")[:10]
     suggested_excludes = TestQueries.objects.filter(processed=False).order_by("rsv")[:10]
+    for sa in suggested_adds:
+        sa.query = sa.query.split()
+
+    for se in suggested_excludes:
+        se.query = se.query.split()
 
     return render_to_response('connect-lists.html',
                                       {"suggested_adds":suggested_adds,"suggested_excludes":suggested_excludes})
 
 
+@csrf_exempt
+def get_word_c(request):
+    w = request.POST['word']
+    return HttpResponse(Words.objects.get(word=w).c)
