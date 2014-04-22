@@ -7,10 +7,13 @@
 	<script src="{% static 'js/jquery.js' %}"></script>
 	<script src="{% static 'js/jquery-ui-1.10.4/ui/jquery.ui.core.js' %}"></script>
 	<script src="{% static 'js/jquery-ui-1.10.4/ui/jquery.ui.widget.js' %}"></script>
+    <script src="{% static 'js/jquery-ui-1.10.4/ui/jquery.ui.tooltip.js' %}"></script>
 	<script src="{% static 'js/jquery-ui-1.10.4/ui/jquery.ui.mouse.js' %}"></script>
 	<script src="{% static 'js/jquery-ui-1.10.4/ui/jquery.ui.sortable.js' %}"></script>
+
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
 	<link rel="stylesheet" href="{% static 'css/bootstrap/dist/css/bootstrap.min.css' %}">
-	
+
 	<script>
 
 		var toggleIcon = function(item, iconClass) {
@@ -78,8 +81,33 @@
 			});
 
 
+            $(".word").bind("mouseover", function(){
+
+                var that = $(this);
+
+                $.ajax({
+                  type: "POST",
+                  url: "/get_word_c",
+                  cache: false,
+                  data: { word : $(this).text() },
+                  success: function( data ) {
+                    that.attr("title", data);
+                  }
+
+                });
+
+                that.tooltip();
+
+
+            });
+
+
 
 		});
+
+
+
+
 	</script>
 
 
@@ -131,7 +159,18 @@
 
                                         {% for suggested_add in suggested_adds %}
 
-                                        <li id="{{ suggested_add.id }}" class="list-group-item list-group-item-info">{{ suggested_add}} <br> {{ suggested_add.rsv }}</li>
+                                        <li id="{{ suggested_add.id }}" class="list-group-item list-group-item-info">
+
+
+                                            {% for sq in suggested_add.query %}
+
+                                                <span class="word">{{sq}}</span>
+
+                                            {% endfor %}
+
+
+
+                                            <br> {{ suggested_add.rsv }}</li>
 
                                         {% endfor %}
 
@@ -151,7 +190,17 @@
 
                                         {% for suggested_exclude in suggested_excludes %}
 
-                                        <li id="{{ suggested_exclude.id }}" class="list-group-item list-group-item-warning">{{ suggested_exclude }} <br> {{ suggested_exclude.rsv }}</li>
+                                        <li id="{{ suggested_exclude.id }}" class="list-group-item list-group-item-warning">
+
+
+
+                                            {% for se in suggested_exclude.query %}
+
+                                                <span class="word">{{se}}</span>
+
+                                            {% endfor %}
+
+                                            <br> {{ suggested_exclude.rsv }}</li>
 
                                         {% endfor %}
 									</ul>
