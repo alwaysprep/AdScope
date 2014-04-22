@@ -131,7 +131,16 @@
 
                                         {% for suggested_add in suggested_adds %}
 
-                                        <li id="{{ suggested_add.id }}" class="list-group-item list-group-item-info">{{ " ".join(["<span>" + sa + "</span>" for sa in suggested_add.split()]) }} <br> {{ suggested_add.rsv }}</li>
+                                        <li id="{{ suggested_add.id }}" class="list-group-item list-group-item-info">
+
+                                           {% for sa in suggested_add.split() %}
+
+                                               <span>{{ sa }}</span>
+
+
+                                           {% endfor %}
+                                           <br>{{ suggested_add.rsv }}
+                                        </li>
 
                                         {% endfor %}
 
