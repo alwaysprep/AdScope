@@ -5,15 +5,25 @@ from forms import UploadFileForm
 from models import TestQueries, TrainQueries, Words
 from nltk.corpus import wordnet
 from django.http import HttpResponse
+import random
 
 from extract import from_tsv_get, hist
 from rsv import updatePtUt
-
+import old_rsv
+import old_extract
 
 def is_relevant(line):
     return (line[1] == 'Added' or line[2] == "1") and (not line[1] == 'Excluded')
 
+def old_extract_data(lines, sf=None):
+    words = old_extract.hist(lines)
+    lins = old_extract.rel_non_rel_lines(lines)
 
+    for word in words:
+        words[word] = list(old_rsv.calculatePtUt(word,words,lins))
+        words.get(word).append(old_rsv.calculateC(word, words))
+
+    return words
 
 def extract_data(lines, sf=None):
     words = hist(lines)
@@ -147,7 +157,6 @@ def choose(request):
         for se in suggested_excludes:
             se.query = se.query.split()
 
-        print suggested_excludes
         return render_to_response('partial.html', {"suggested_adds":suggested_adds,"suggested_excludes":suggested_excludes})
 
 
@@ -170,3 +179,37 @@ def get_word_c(request):
     except Words.DoesNotExist:
         w = None
     return HttpResponse(w if w else "unknown")
+
+
+@csrf_exempt
+def get_precision(request):
+    t = TrainQueries.objects.all()
+    t = list(enumerate(t))
+
+    good = 0
+    bad = 0
+    random.shuffle(t)
+
+    total = len(t)
+
+    trains = [[el.query,"Added" if el.relevant else "Excluded", 0] for i, el in t[:4 * total/5]]
+    tests = [[el.query, el.relevant] for i, el in t[4 * total/5: ]]
+
+    words = old_extract_data(trains)
+
+    for test in tests:
+
+
+        if (old_rsv.calculateRsv(test[0], words) > 1.6):
+            if test[1]:
+                good += 1
+            else:
+                bad += 1
+        else:
+            if test[1]:
+                bad += 1
+            else:
+                good += 1
+
+    return HttpResponse(str(good/float(len(tests))))
+

@@ -13,6 +13,7 @@ urlpatterns = patterns('',
     url(r'^file/', include('queries.urls')),
     url(r'^choose', 'queries.views.choose'),
     url(r'^get_word_c', 'queries.views.get_word_c'),
+    url(r'^get_precision', 'queries.views.get_precision'),
 )
 urlpatterns += staticfiles_urlpatterns()
 
