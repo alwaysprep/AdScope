@@ -165,5 +165,8 @@ def choose(request):
 
 @csrf_exempt
 def get_word_c(request):
-    w = request.POST['word']
-    return HttpResponse(Words.objects.get(word=w).c)
+    try:
+        w = Words.objects.get(word = request.POST['word']).c
+    except Words.DoesNotExist:
+        w = None
+    return HttpResponse(w if w else "unknown")
