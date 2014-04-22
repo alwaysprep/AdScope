@@ -131,7 +131,7 @@
 
                                         {% for suggested_add in suggested_adds %}
 
-                                        <li id="{{ suggested_add.id }}" class="list-group-item list-group-item-info">{{ suggested_add suggested_add.rsv }}</li>
+                                        <li id="{{ suggested_add.id }}" class="list-group-item list-group-item-info">{{ suggested_add}} {{ suggested_add.rsv }}</li>
 
                                         {% endfor %}
 
@@ -151,7 +151,7 @@
 
                                         {% for suggested_exclude in suggested_excludes %}
 
-                                        <li id="{{ suggested_exclude.id }}" class="list-group-item list-group-item-warning">{{ suggested_exclude suggested_exclude.rsv }}</li>
+                                        <li id="{{ suggested_exclude.id }}" class="list-group-item list-group-item-warning">{{ suggested_exclude }} {{ suggested_exclude.rsv }}</li>
 
                                         {% endfor %}
 									</ul>
