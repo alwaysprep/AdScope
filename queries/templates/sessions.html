@@ -1,0 +1,55 @@
+{% load staticfiles %}
+{% load query_extras %}
+<!doctype html>
+<html lang="en">
+    <head>
+
+        <meta charset="utf-8">
+        <script src="{% static 'js/jquery.js' %}"></script>
+        <script src="{% static 'js/jquery-ui-1.10.4/ui/jquery.ui.core.js' %}"></script>
+        <script src="{% static 'js/jquery-ui-1.10.4/ui/jquery.ui.widget.js' %}"></script>
+        <script src="{% static 'js/jquery-ui-1.10.4/ui/jquery.ui.tooltip.js' %}"></script>
+        <script src="{% static 'js/jquery-ui-1.10.4/ui/jquery.ui.mouse.js' %}"></script>
+        <script src="{% static 'js/jquery-ui-1.10.4/ui/jquery.ui.sortable.js' %}"></script>
+
+        <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+        <link rel="stylesheet" href="{% static 'css/bootstrap/dist/css/bootstrap.min.css' %}">
+
+    </head>
+    <body>
+        <div class="row">
+            <div class="col-md-2"></div>
+            <div class="col-md-8">
+                <div class="well">
+                    <table class="table">
+                        <tr>
+                            <td>Session Number</td>
+                            <td>Confirm Added</td>
+                            <td>Confirm Excluded</td>
+                            <td>Refuse Added</td>
+                            <td>Refuse Excluded</td>
+                            <td>Accuracy</td>
+                        </tr>
+
+                        {% for session in sessions %}
+
+                                <tr>
+                                    <td>{{ session.id }}</td>
+                                    <td>{{ session.confirm_added }}</td>
+                                    <td>{{ session.confirm_excluded }}</td>
+                                    <td>{{ session.refuse_added }}</td>
+                                    <td>{{ session.refuse_excluded }}</td>
+                                    <td>%{{ session.confirm_added|percent:session.confirm_excluded }}</td>
+                                </tr>
+
+                        {% endfor %}
+
+                    </table>
+
+                </div>
+            </div>
+            <div class="col-md-2"></div>
+       </div>
+
+    </body>
+</html>

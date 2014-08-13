@@ -14,6 +14,8 @@ urlpatterns = patterns('',
     url(r'^choose', 'queries.views.choose'),
     url(r'^get_word_c', 'queries.views.get_word_c'),
     url(r'^get_precision', 'queries.views.get_precision'),
+    url(r'^sessions','queries.views.showSessions'),
+
 )
 urlpatterns += staticfiles_urlpatterns()
 

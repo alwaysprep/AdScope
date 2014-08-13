@@ -30,11 +30,15 @@
                 var add_lis = [];
                 var exclude_lis = [];
                 var none_lis = [];
+                var add_lis_rsv = [];
+                var exclude_lis_rsv = [];
                 $(".list-group-item-danger").each(function(){
                     exclude_lis.push($(this).attr("id"));
+                    exclude_lis_rsv.push($(this).attr("data-rsv"));
                 });
                 $(".list-group-item-success").each(function(){
                     add_lis.push($(this).attr("id"));
+                    add_lis_rsv.push($(this).attr("data-rsv"));
                 });
                 $(".list-group-item-warning").each(function(){
                     none_lis.push($(this).attr("id"));
@@ -43,11 +47,15 @@
                     none_lis.push($(this).attr("id"));
                 });
 
+                console.log(add_lis);
+
                 $.ajax({
                   type: "POST",
                   url: "/choose",
                   cache: false,
-                  data: { add_lis: add_lis, exclude_lis: exclude_lis, none_lis: none_lis },
+                  data: { add_lis: add_lis, exclude_lis: exclude_lis,
+                        add_lis_rsv: add_lis_rsv, exclude_lis_rsv: exclude_lis_rsv,
+                      none_lis: none_lis },
                   success: function( data ) {
                     $( "#choose" ).html( data );
                     window.location.reload();
@@ -159,7 +167,7 @@
 
                                         {% for suggested_add in suggested_adds %}
 
-                                        <li id="{{ suggested_add.id }}" class="list-group-item list-group-item-info">
+                                        <li id="{{ suggested_add.id }}" data-rsv="{{ suggested_add.rsv }}" class="list-group-item list-group-item-info">
 
 
                                             {% for sq in suggested_add.query %}
@@ -186,11 +194,9 @@
 								<div id="notok" class="list-group">
 									<ul id="sortable1" class="connectedSortable list-unstyled">
 
-
-
                                         {% for suggested_exclude in suggested_excludes %}
 
-                                        <li id="{{ suggested_exclude.id }}" class="list-group-item list-group-item-warning">
+                                        <li id="{{ suggested_exclude.id }}" data-rsv="{{ suggested_exclude.rsv }}" class="list-group-item list-group-item-warning">
 
 
 

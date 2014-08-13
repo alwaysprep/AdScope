@@ -1,12 +1,11 @@
 from django.views.decorators.csrf import csrf_exempt
-from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
 from forms import UploadFileForm
-from models import TestQueries, TrainQueries, Words
-from nltk.corpus import wordnet
+from models import TestQueries, TrainQueries, Words, Sessions
 from django.http import HttpResponse
 import random
 
+from config import rsv_threshold
 from extract import from_tsv_get, hist
 from rsv import updatePtUt
 import old_rsv
@@ -29,16 +28,6 @@ def extract_data(lines, sf=None):
     words = hist(lines)
     for word in words:
         updatePtUt(word, words)
-
-
-
-def isEnglish(sentence, words):
-    sentenceList = sentence.split()
-    for word in sentenceList:
-        if not wordnet.synsets(word) :
-            if sum(words.get(word,[0,0])[:2]) < 3:
-                return False
-    return True
 
 
 # Create your views here.
@@ -116,6 +105,34 @@ def choose(request):
         adds = request.POST.getlist("add_lis[]")
         excludes = request.POST.getlist("exclude_lis[]")
         nones = request.POST.getlist("none_lis[]")
+        add_rsv = [float(i) for i in request.POST.getlist("add_lis_rsv[]")]
+        exclude_rsv = [float(i) for i in request.POST.getlist("exclude_lis_rsv[]")]
+
+
+        refuse_excluded = 0
+        refuse_added = 0
+        confirm_excluded = 0
+        confirm_added = 0
+
+
+
+        for add in add_rsv:
+            if add < rsv_threshold:
+                refuse_excluded += 1
+            else:
+                confirm_added += 1
+
+        for exclude in exclude_rsv:
+            if exclude > rsv_threshold:
+                refuse_added += 1
+            else:
+                confirm_excluded += 1
+
+        print confirm_added, confirm_excluded, refuse_added, refuse_excluded
+        se = Sessions(confirm_added= confirm_added, confirm_excluded=confirm_excluded,
+                      refuse_added=refuse_added, refuse_excluded=refuse_excluded)
+        se.save()
+
 
         train = []
         for el in adds:
@@ -213,3 +230,8 @@ def get_precision(request):
 
     return HttpResponse(str(good/float(len(tests))))
 
+
+@csrf_exempt
+def showSessions(request):
+    sessions = Sessions.objects.all()
+    return render_to_response("sessions.html", {"sessions": sessions})

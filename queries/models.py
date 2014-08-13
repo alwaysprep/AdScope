@@ -28,6 +28,12 @@ class Words(models.Model):
     ut = models.FloatField()
     c = models.FloatField()
 
+class Sessions(models.Model):
+    confirm_added = models.IntegerField()
+    confirm_excluded = models.IntegerField()
+    refuse_added = models.IntegerField()
+    refuse_excluded = models.IntegerField()
+
     def __unicode__(self):
         return "(%s, %f)" % (self.word, self.c)
 
